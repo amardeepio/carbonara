@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
-import { priceWithClimatiq } from "@/lib/climatiq";
-import { calculate, getFactor } from "@/lib/emissions";
-import { getStore } from "@/lib/store";
+import { createEntry } from "@/lib/logEntry";
+import { getSessionUser } from "@/lib/session";
 import { logEntrySchema } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 /** POST /api/log — validate, price and persist a single activity entry. */
 export async function POST(request: Request) {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -23,24 +27,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const { type, quantity } = parsed.data;
-  const factor = getFactor(type);
-  if (!factor) {
-    return NextResponse.json({ error: `Unknown activity type: ${type}` }, { status: 400 });
+  const result = await createEntry(user, parsed.data);
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: result.status });
   }
-
-  // Prefer Climatiq's live figure; fall back to the built-in India factor.
-  const live = await priceWithClimatiq(factor, quantity);
-  const kgCo2e = live?.kgCo2e ?? calculate(type, quantity);
-
-  const store = await getStore();
-  const entry = await store.add({
-    type,
-    quantity,
-    kgCo2e,
-    createdAt: new Date().toISOString(),
-    pricedBy: live ? "climatiq" : "builtin",
-  });
-
-  return NextResponse.json({ entry }, { status: 201 });
+  return NextResponse.json({ entry: result.entry }, { status: 201 });
 }

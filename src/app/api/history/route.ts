@@ -1,22 +1,17 @@
 import { NextResponse } from "next/server";
+import { dailyTotals } from "@/lib/emissions";
+import { getSessionUser } from "@/lib/session";
 import { getStore } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/history — daily totals (kg CO2e per day), oldest first. */
+/** GET /api/history — the session user's daily totals (kg CO2e), oldest first. */
 export async function GET() {
-  const store = await getStore();
-  const entries = await store.list();
-
-  const byDay = new Map<string, number>();
-  for (const entry of entries) {
-    const day = entry.createdAt.slice(0, 10); // YYYY-MM-DD
-    byDay.set(day, (byDay.get(day) ?? 0) + entry.kgCo2e);
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
-
-  const history = [...byDay.entries()]
-    .map(([date, kg]) => ({ date, kg: Math.round(kg * 100) / 100 }))
-    .sort((a, b) => a.date.localeCompare(b.date));
-
-  return NextResponse.json({ history });
+  const store = await getStore();
+  const entries = await store.list(user.id);
+  return NextResponse.json({ history: dailyTotals(entries) });
 }

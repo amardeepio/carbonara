@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { LocaleProvider } from "@/components/LocaleProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,7 +16,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <a className="skip-link" href="#main">
           Skip to main content
         </a>
-        {children}
+        <LocaleProvider>{children}</LocaleProvider>
       </body>
     </html>
   );

@@ -27,3 +27,10 @@ yarn-error.log*
 
 # test / coverage
 /coverage
+
+# typescript incremental build info
+tsconfig.tsbuildinfo
+
+# local AI-assistant files (not for the public repo)
+.commandcode/
+CLAUDE.md

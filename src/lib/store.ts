@@ -1,20 +1,22 @@
 import { randomUUID } from "node:crypto";
-import type { Collection, Db, MongoClient } from "mongodb";
+import type { Collection } from "mongodb";
+import { getDb } from "./db";
 import type { LogEntry } from "./types";
 
 /**
- * Storage layer for activity log entries.
+ * Storage layer for activity log entries, always scoped to a user.
  *
- * Uses MongoDB when `MONGODB_URI` is configured, otherwise an in-memory store
- * so the app (and its reviewers) can run with zero external dependencies. The
- * Mongo client is cached across hot-reloads / serverless invocations to avoid
- * exhausting the connection pool — the standard Next.js + Mongo pattern.
+ * Uses MongoDB when available (shared connection in `db.ts`), otherwise an
+ * in-memory store so the app (and its reviewers) can run with zero external
+ * dependencies.
  */
 
 export interface EntryStore {
   add(entry: Omit<LogEntry, "id">): Promise<LogEntry>;
-  list(): Promise<LogEntry[]>;
-  remove(id: string): Promise<boolean>;
+  /** List a user's entries, newest first. */
+  list(userId: string): Promise<LogEntry[]>;
+  /** Remove one of `userId`'s entries; false if it doesn't exist or isn't theirs. */
+  remove(id: string, userId: string): Promise<boolean>;
 }
 
 const COLLECTION = "entries";
@@ -30,13 +32,16 @@ class MemoryStore implements EntryStore {
     return created;
   }
 
-  async list(): Promise<LogEntry[]> {
-    return [...this.entries].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  async list(userId: string): Promise<LogEntry[]> {
+    return this.entries
+      .filter((e) => e.userId === userId)
+      .map((e) => ({ ...e, date: e.date ?? e.createdAt.slice(0, 10) }))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
-  async remove(id: string): Promise<boolean> {
+  async remove(id: string, userId: string): Promise<boolean> {
     const before = this.entries.length;
-    this.entries = this.entries.filter((e) => e.id !== id);
+    this.entries = this.entries.filter((e) => !(e.id === id && e.userId === userId));
     return this.entries.length < before;
   }
 }
@@ -57,13 +62,17 @@ class MongoStore implements EntryStore {
     return { id: _id, ...rest };
   }
 
-  async list(): Promise<LogEntry[]> {
-    const docs = await this.collection.find().sort({ createdAt: -1 }).toArray();
-    return docs.map(({ _id, ...rest }) => ({ id: _id, ...rest }));
+  async list(userId: string): Promise<LogEntry[]> {
+    const docs = await this.collection.find({ userId }).sort({ createdAt: -1 }).toArray();
+    return docs.map(({ _id, ...rest }) => ({
+      id: _id,
+      ...rest,
+      date: rest.date ?? rest.createdAt.slice(0, 10),
+    }));
   }
 
-  async remove(id: string): Promise<boolean> {
-    const res = await this.collection.deleteOne({ _id: id });
+  async remove(id: string, userId: string): Promise<boolean> {
+    const res = await this.collection.deleteOne({ _id: id, userId });
     return res.deletedCount === 1;
   }
 }
@@ -71,8 +80,6 @@ class MongoStore implements EntryStore {
 // --- Cached singleton resolution ------------------------------------------
 
 interface Cache {
-  client?: MongoClient;
-  store?: EntryStore;
   promise?: Promise<EntryStore>;
 }
 
@@ -81,34 +88,17 @@ const globalForStore = globalThis as unknown as { __carbonaraStore?: Cache };
 const cache: Cache = (globalForStore.__carbonaraStore ??= {});
 
 async function createStore(): Promise<EntryStore> {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) {
-    return new MemoryStore();
-  }
-
-  // Imported lazily so the in-memory path has no Mongo dependency cost.
-  const { MongoClient } = await import("mongodb");
-  const client = new MongoClient(uri);
-  await client.connect();
-  cache.client = client;
-
-  const db: Db = client.db(process.env.MONGODB_DB || "carbonara");
+  const db = await getDb();
+  if (!db) return new MemoryStore();
   const collection = db.collection<MongoDoc>(COLLECTION);
-  await collection.createIndex({ createdAt: -1 });
+  await collection.createIndex({ userId: 1, createdAt: -1 });
   return new MongoStore(collection);
 }
 
 /** Resolve the shared store instance, creating it on first use. */
 export async function getStore(): Promise<EntryStore> {
-  if (cache.store) return cache.store;
-  cache.promise ??= createStore().then((store) => {
-    cache.store = store;
-    return store;
-  });
+  cache.promise ??= createStore();
   return cache.promise;
 }
 
-/** Whether persistent MongoDB storage is configured. */
-export function isPersistent(): boolean {
-  return Boolean(process.env.MONGODB_URI);
-}
+export { isPersistent } from "./db";
