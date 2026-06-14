@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { COMMUTE_OPTIONS, DIET_OPTIONS } from "@/components/profileOptions";
 import { INDIAN_STATES, type IndianState } from "@/lib/grid";
 import type { CommuteMode, DietPreference, SafeUser } from "@/lib/types";
+import { useGoogleSignIn } from "@/hooks/useGoogleSignIn";
 
 interface Props {
   /** Whether the server has a Google client id configured. */
@@ -15,50 +16,6 @@ interface Props {
 
 const STEPS = ["welcome", "name", "commute", "diet", "state", "signin"] as const;
 type Step = (typeof STEPS)[number];
-
-const GSI_SRC = "https://accounts.google.com/gsi/client";
-const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-
-interface GsiInitConfig {
-  client_id: string;
-  callback: (response: { credential: string }) => void;
-  /** Use the classic popup flow — FedCM dialogs are unreliable in embedded/emulated contexts. */
-  use_fedcm_for_button?: boolean;
-  /** Better behaviour under Safari/iOS Intelligent Tracking Prevention. */
-  itp_support?: boolean;
-}
-
-declare global {
-  interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (config: GsiInitConfig) => void;
-          renderButton: (parent: HTMLElement, options: Record<string, unknown>) => void;
-        };
-      };
-    };
-  }
-}
-
-/** Load the Google Identity Services script once. */
-function loadGsiScript(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (window.google?.accounts) return resolve();
-    const existing = document.querySelector<HTMLScriptElement>(`script[src="${GSI_SRC}"]`);
-    if (existing) {
-      existing.addEventListener("load", () => resolve());
-      existing.addEventListener("error", () => reject(new Error("GSI failed to load")));
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = GSI_SRC;
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("GSI failed to load"));
-    document.head.appendChild(script);
-  });
-}
 
 /**
  * Mobile-first onboarding: a short, swipe-feel stepper (welcome → name →
@@ -77,48 +34,23 @@ export default function Onboarding({ googleEnabled, returning = false, onComplet
   const [state, setState] = useState<IndianState | "">("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [googleFailed, setGoogleFailed] = useState(false);
 
   const headingRef = useRef<HTMLHeadingElement>(null);
   const googleBtnRef = useRef<HTMLDivElement>(null);
 
   const step: Step = STEPS[stepIndex] ?? "welcome";
-  const showGoogle = googleEnabled && Boolean(GOOGLE_CLIENT_ID) && !googleFailed;
 
   // Move focus to the step heading on change so screen readers follow along.
   useEffect(() => {
     if (stepIndex > 0) headingRef.current?.focus();
   }, [stepIndex]);
 
-  // Render the official Google button when the sign-in step appears.
-  useEffect(() => {
-    if (step !== "signin" || !showGoogle) return;
-    let cancelled = false;
-    loadGsiScript()
-      .then(() => {
-        if (cancelled || !window.google || !googleBtnRef.current) return;
-        window.google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID as string,
-          callback: (response) => void finish("google", response.credential),
-          use_fedcm_for_button: false,
-          itp_support: true,
-        });
-        googleBtnRef.current.replaceChildren();
-        window.google.accounts.id.renderButton(googleBtnRef.current, {
-          theme: "outline",
-          size: "large",
-          shape: "pill",
-          text: "continue_with",
-          width: 280,
-        });
-      })
-      .catch(() => setGoogleFailed(true));
-    return () => {
-      cancelled = true;
-    };
-    // finish is stable for the lifetime of this flow.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, showGoogle]);
+  const { showGoogle } = useGoogleSignIn({
+    googleEnabled,
+    step,
+    btnRef: googleBtnRef,
+    onFinish: finish,
+  });
 
   function next() {
     setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));

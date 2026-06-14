@@ -152,6 +152,9 @@ function buildContext(
 }
 
 const DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile";
+const DEFAULT_TEMPERATURE = 0.5;
+const INSIGHTS_MAX_TOKENS = 220;
+const CHAT_MAX_TOKENS = 300;
 
 /** Appended to system prompts when the user's UI language is Hindi. */
 const HINDI_INSTRUCTION = " Reply in Hindi (Devanagari script).";
@@ -196,8 +199,8 @@ export async function generateInsights(
   try {
     const completion = await getGroqClient(apiKey).chat.completions.create({
       model: process.env.GROQ_MODEL || DEFAULT_GROQ_MODEL,
-      temperature: 0.5,
-      max_tokens: 220,
+      temperature: DEFAULT_TEMPERATURE,
+      max_tokens: INSIGHTS_MAX_TOKENS,
       messages: [
         { role: "system", content: SYSTEM_PROMPT + (locale === "hi" ? HINDI_INSTRUCTION : "") },
         { role: "user", content: buildContext(summary, recommendations, user) },
@@ -205,7 +208,8 @@ export async function generateInsights(
     });
     const message = completion.choices[0]?.message?.content?.trim();
     return message ? { message, recommendations, generatedBy: "groq" } : fallback;
-  } catch {
+  } catch (error) {
+    console.error("Groq API error in generateInsights:", error);
     return fallback;
   }
 }
@@ -245,8 +249,8 @@ export async function chatReply(
   try {
     const completion = await getGroqClient(apiKey).chat.completions.create({
       model: process.env.GROQ_MODEL || DEFAULT_GROQ_MODEL,
-      temperature: 0.5,
-      max_tokens: 300,
+      temperature: DEFAULT_TEMPERATURE,
+      max_tokens: CHAT_MAX_TOKENS,
       messages: [
         { role: "system", content: CHAT_SYSTEM_PROMPT + (locale === "hi" ? HINDI_INSTRUCTION : "") },
         {
@@ -258,7 +262,8 @@ export async function chatReply(
     });
     const reply = completion.choices[0]?.message?.content?.trim();
     return reply ? { reply, generatedBy: "groq" } : fallback();
-  } catch {
+  } catch (error) {
+    console.error("Groq API error in chatReply:", error);
     return fallback();
   }
 }

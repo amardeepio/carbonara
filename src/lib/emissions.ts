@@ -303,8 +303,11 @@ export function getFactor(type: string): Factor | undefined {
 
 /**
  * Compute kg CO2e for a given activity using the built-in factors.
+ * @param type The activity type key (e.g., "car_petrol").
+ * @param quantity The amount of the activity (e.g., km, kWh).
  * @param gridKgPerKwh Regional grid intensity for grid-powered activities;
  *                     defaults to the national average.
+ * @returns The total emissions in kg CO2e.
  * @throws {Error} if the activity type is unknown or the quantity is invalid.
  */
 export function calculate(
@@ -550,13 +553,21 @@ export function weekDelta(
   return { thisWeek, lastWeek, pct };
 }
 
-/** Parse a YYYY-MM-DD string to UTC midnight without timezone shift. */
+/**
+ * Parse a YYYY-MM-DD string to UTC midnight without timezone shift.
+ * @param date The date string to parse in YYYY-MM-DD format.
+ * @returns A Date object set to UTC midnight of the specified date.
+ */
 function parseDate(date: string): Date {
   const [y, m, d] = date.split("-").map(Number) as [number, number, number];
   return new Date(Date.UTC(y, m - 1, d));
 }
 
-/** Format a Date as YYYY-MM-DD in UTC. */
+/**
+ * Format a Date as YYYY-MM-DD in UTC.
+ * @param d The Date object to format.
+ * @returns A string representing the date in YYYY-MM-DD format.
+ */
 function fmtDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
