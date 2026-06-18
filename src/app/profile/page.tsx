@@ -90,7 +90,9 @@ export default function ProfilePage() {
       <header className="appbar">
         <div className="appbar-inner">
           <Link className="brand" href="/">
-            <span className="brand-mark" aria-hidden="true">🌱</span>
+            <span className="brand-mark" aria-hidden="true">
+              🌱
+            </span>
             <span className="brand-name">Carbonara</span>
           </Link>
           <Link className="back-link" href="/">

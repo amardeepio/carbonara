@@ -1,3 +1,4 @@
+import { todayISO } from "./date";
 import { addDays, round } from "./emissions";
 import type { Factor, LogEntry } from "./types";
 
@@ -113,7 +114,7 @@ export function simulateSwap(
   swap: Swap,
   entries: LogEntry[],
   factors: Record<string, Factor>,
-  today: string = new Date().toISOString().slice(0, 10),
+  today: string = todayISO(),
 ): SwapProjection | null {
   const from = factors[swap.fromType];
   if (!from) return null;
@@ -124,9 +125,7 @@ export function simulateSwap(
   const basis: SwapProjection["basis"] = historyQty > 0 ? "history" : "assumed";
   const weeklyQty = round(historyQty > 0 ? historyQty : swap.assumedWeeklyQty);
 
-  const perUnitSaving = to
-    ? from.kgPerUnit - to.kgPerUnit
-    : from.kgPerUnit * (swap.savingPct ?? 0);
+  const perUnitSaving = to ? from.kgPerUnit - to.kgPerUnit : from.kgPerUnit * (swap.savingPct ?? 0);
   const savedKgPerWeek = round(Math.max(perUnitSaving, 0) * weeklyQty);
 
   return {

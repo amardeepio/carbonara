@@ -44,7 +44,9 @@ export default function HomePage() {
   if (auth.status === "loading") {
     return (
       <main className="onboarding" aria-busy="true">
-        <p className="onb-mark" aria-hidden="true">🌱</p>
+        <p className="onb-mark" aria-hidden="true">
+          🌱
+        </p>
         <p className="muted">Loading Carbonara…</p>
       </main>
     );
@@ -72,7 +74,9 @@ export default function HomePage() {
       <header className="appbar">
         <div className="appbar-inner">
           <Link className="brand" href="/">
-            <span className="brand-mark" aria-hidden="true">🌱</span>
+            <span className="brand-mark" aria-hidden="true">
+              🌱
+            </span>
             <span className="brand-name">Carbonara</span>
           </Link>
           <div className="appbar-user">
@@ -127,12 +131,12 @@ export default function HomePage() {
 
           <RoutinesCard activities={activities} logDate={logDate} onLogged={loadFootprint} />
 
-          {enrichedSummary ? (
+          {data && enrichedSummary ? (
             <FootprintDashboard
               summary={enrichedSummary}
-              entries={data!.entries}
+              entries={data.entries}
               factors={factors}
-              persistent={data!.persistent}
+              persistent={data.persistent}
               onDelete={handleDelete}
               streak={streak}
               delta={delta}
@@ -157,10 +161,10 @@ export default function HomePage() {
             />
           )}
 
-          {enrichedSummary && (
+          {data && enrichedSummary && (
             <MonthCalendar
-              entries={data!.entries}
-              target={data!.summary.benchmarks.sustainableTarget}
+              entries={data.entries}
+              target={data.summary.benchmarks.sustainableTarget}
               personalTarget={personalTarget}
               selectedDate={selectedDate}
               onSelectDate={setSelectedDate}

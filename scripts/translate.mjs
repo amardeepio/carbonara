@@ -56,23 +56,28 @@ function protect(text) {
   return text.replace(/\{[a-zA-Z0-9_]+\}/g, (m) => `<span translate="no">${m}</span>`);
 }
 function unprotect(text) {
-  return text
-    .replace(/<span translate="no">/g, "")
-    .replace(/<\/span>/g, "")
-    // The HTML format entity-encodes a handful of characters; undo them.
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&gt;/g, ">")
-    .replace(/&lt;/g, "<")
-    .replace(/&amp;/g, "&");
+  return (
+    text
+      .replace(/<span translate="no">/g, "")
+      .replace(/<\/span>/g, "")
+      // The HTML format entity-encodes a handful of characters; undo them.
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&gt;/g, ">")
+      .replace(/&lt;/g, "<")
+      .replace(/&amp;/g, "&")
+  );
 }
 
 async function translateBatch(texts, target) {
-  const res = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ q: texts.map(protect), source: "en", target, format: "html" }),
-  });
+  const res = await fetch(
+    `https://translation.googleapis.com/language/translate/v2?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ q: texts.map(protect), source: "en", target, format: "html" }),
+    },
+  );
   if (!res.ok) {
     throw new Error(`Translate API ${res.status}: ${(await res.text()).slice(0, 300)}`);
   }
@@ -96,7 +101,10 @@ for (const target of targets) {
   const out = { ...existing };
   for (let i = 0; i < missing.length; i += BATCH) {
     const slice = missing.slice(i, i + BATCH);
-    const translated = await translateBatch(slice.map((k) => en[k]), target);
+    const translated = await translateBatch(
+      slice.map((k) => en[k]),
+      target,
+    );
     slice.forEach((k, idx) => {
       out[k] = translated[idx];
     });

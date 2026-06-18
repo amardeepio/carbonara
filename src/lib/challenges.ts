@@ -56,7 +56,13 @@ export const CHALLENGES: ChallengeDef[] = [
     title: "Metro Monday",
     description: "Take the metro for at least 5 km on Monday instead of driving.",
     icon: "🚇",
-    rule: { kind: "use", useTypes: ["metro"], days: [1], minQty: 5, counterfactualType: "car_petrol" },
+    rule: {
+      kind: "use",
+      useTypes: ["metro"],
+      days: [1],
+      minQty: 5,
+      counterfactualType: "car_petrol",
+    },
   },
   {
     key: "meatless_week",
@@ -76,7 +82,12 @@ export const CHALLENGES: ChallengeDef[] = [
     title: "Electric miles week",
     description: "Ride 30 km on an electric two-wheeler instead of petrol this week.",
     icon: "🛵",
-    rule: { kind: "use", useTypes: ["ev_two_wheeler"], minQty: 30, counterfactualType: "two_wheeler" },
+    rule: {
+      kind: "use",
+      useTypes: ["ev_two_wheeler"],
+      minQty: 30,
+      counterfactualType: "two_wheeler",
+    },
   },
   {
     key: "no_delivery_week",
@@ -144,10 +155,7 @@ function inRange(entries: LogEntry[], start: string, end: string): LogEntry[] {
 /** Fraction of the pledged week that has elapsed as of `today`. */
 function weekElapsed(weekStart: string, today: string): number {
   if (today < weekStart) return 0;
-  const days = Math.min(
-    Math.floor((Date.parse(today) - Date.parse(weekStart)) / 86400000) + 1,
-    7,
-  );
+  const days = Math.min(Math.floor((Date.parse(today) - Date.parse(weekStart)) / 86400000) + 1, 7);
   return days / 7;
 }
 
@@ -169,9 +177,7 @@ export function evaluateChallenge(
   if (rule.kind === "avoid") {
     const violations = week.filter((e) => rule.avoidTypes.includes(e.type));
     const qualifying =
-      rule.requireTypes.length > 0
-        ? week.filter((e) => rule.requireTypes.includes(e.type))
-        : week;
+      rule.requireTypes.length > 0 ? week.filter((e) => rule.requireTypes.includes(e.type)) : week;
 
     if (violations.length > 0) {
       return { status: "missed", progress: 0, kgAvoided: 0 };
@@ -260,9 +266,7 @@ export function canPledge(
   if (def.rule.kind !== "reduce") return { ok: true };
   const types = def.rule.types;
   const priorDays = new Set(
-    entries
-      .filter((e) => types.includes(e.type) && e.date < weekStart)
-      .map((e) => e.date),
+    entries.filter((e) => types.includes(e.type) && e.date < weekStart).map((e) => e.date),
   );
   if (priorDays.size < 7) {
     return {

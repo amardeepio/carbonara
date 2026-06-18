@@ -2,7 +2,11 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { getRoutineStore } from "@/lib/routines";
 import { routineLogSchema, routineSchema, type Routine } from "@/lib/types";
 
-function draft(userId: string, name: string, createdAt = "2026-06-09T08:00:00.000Z"): Omit<Routine, "id"> {
+function draft(
+  userId: string,
+  name: string,
+  createdAt = "2026-06-09T08:00:00.000Z",
+): Omit<Routine, "id"> {
   return {
     userId,
     name,
@@ -64,7 +68,9 @@ describe("routineSchema", () => {
   });
 
   it("rejects empty names, empty bundles and bad quantities", () => {
-    expect(routineSchema.safeParse({ name: " ", items: [{ type: "metro", quantity: 1 }] }).success).toBe(false);
+    expect(
+      routineSchema.safeParse({ name: " ", items: [{ type: "metro", quantity: 1 }] }).success,
+    ).toBe(false);
     expect(routineSchema.safeParse({ name: "Day", items: [] }).success).toBe(false);
     expect(
       routineSchema.safeParse({ name: "Day", items: [{ type: "metro", quantity: -2 }] }).success,

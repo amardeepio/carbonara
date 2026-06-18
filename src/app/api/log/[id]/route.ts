@@ -5,10 +5,7 @@ import { getStore } from "@/lib/store";
 export const dynamic = "force-dynamic";
 
 /** DELETE /api/log/:id — remove one of the session user's logged entries. */
-export async function DELETE(
-  _request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });

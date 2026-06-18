@@ -37,10 +37,13 @@ export default function TrendChart({ totals, target }: Props) {
 
   const latestAvg = avg[avg.length - 1]?.kg ?? 0;
   const firstAvg = avg[Math.max(0, avg.length - 8)]?.kg ?? latestAvg;
-  const trendWord = latestAvg < firstAvg ? "trending down" : latestAvg > firstAvg ? "trending up" : "steady";
+  const trendWord =
+    latestAvg < firstAvg ? "trending down" : latestAvg > firstAvg ? "trending up" : "steady";
   const label = `30-day emissions trend: currently averaging ${latestAvg} kg per day, ${trendWord} over the last week. Daily target is ${round(target)} kg.`;
 
-  const avgPath = avg.map((d, i) => `${i === 0 ? "M" : "L"}${x(i) + barW / 2},${y(d.kg)}`).join(" ");
+  const avgPath = avg
+    .map((d, i) => `${i === 0 ? "M" : "L"}${x(i) + barW / 2},${y(d.kg)}`)
+    .join(" ");
 
   // Date ticks: first day, middle, today.
   const ticks = [0, Math.floor(DAYS / 2), DAYS - 1];
@@ -97,13 +100,7 @@ export default function TrendChart({ totals, target }: Props) {
 
         {/* x axis date ticks */}
         {ticks.map((i) => (
-          <text
-            key={i}
-            x={x(i) + barW / 2}
-            y={H - 6}
-            textAnchor="middle"
-            className="trend-tick"
-          >
+          <text key={i} x={x(i) + barW / 2} y={H - 6} textAnchor="middle" className="trend-tick">
             {series[i]?.date.slice(5)}
           </text>
         ))}

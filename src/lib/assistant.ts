@@ -11,7 +11,7 @@ import type {
   Recommendation,
   SafeUser,
 } from "./types";
-import { EMISSION_FACTORS } from "./emissions";
+import { EMISSION_FACTORS, round } from "./emissions";
 import { equivalentsSentence } from "./equivalents";
 import { translate, type Locale, type MessageKey } from "./i18n";
 
@@ -252,7 +252,10 @@ export async function chatReply(
       temperature: DEFAULT_TEMPERATURE,
       max_tokens: CHAT_MAX_TOKENS,
       messages: [
-        { role: "system", content: CHAT_SYSTEM_PROMPT + (locale === "hi" ? HINDI_INSTRUCTION : "") },
+        {
+          role: "system",
+          content: CHAT_SYSTEM_PROMPT + (locale === "hi" ? HINDI_INSTRUCTION : ""),
+        },
         {
           role: "system",
           content: `Footprint context:\n${buildContext(summary, recommend(summary), user)}`,
@@ -274,7 +277,11 @@ export function deterministicChatReply(
   summary: FootprintSummary,
   locale: AssistantLocale = "en",
 ): string {
-  const last = [...messages].reverse().find((m) => m.role === "user")?.content.toLowerCase() ?? "";
+  const last =
+    [...messages]
+      .reverse()
+      .find((m) => m.role === "user")
+      ?.content.toLowerCase() ?? "";
   const hi = locale === "hi";
 
   if (summary.entryCount === 0) {
@@ -289,13 +296,21 @@ export function deterministicChatReply(
       ? "आपकी गतिविधियाँ"
       : "your activities";
 
-  if (/(biggest|highest|most|main|top|largest).*(source|contributor|impact|emit)|where.*from|सबसे बड़ा|स्रोत/.test(last)) {
+  if (
+    /(biggest|highest|most|main|top|largest).*(source|contributor|impact|emit)|where.*from|सबसे बड़ा|स्रोत/.test(
+      last,
+    )
+  ) {
     const b = summary.breakdown[0];
     return hi
       ? `आज आपका सबसे बड़ा योगदानकर्ता ${top} है — ${b?.kg ?? 0} kg CO2e (कुल का ${b?.pct ?? 0}%)। पहले उसी पर काम करने से सबसे ज़्यादा असर होगा।`
       : `Your biggest contributor today is ${top} at ${b?.kg ?? 0} kg CO2e (${b?.pct ?? 0}% of your total). Tackling that first gives you the most impact.`;
   }
-  if (/total|how much|footprint|today|target|compare|average|doing|\bvs\b|versus|कितना|लक्ष्य|औसत/.test(last)) {
+  if (
+    /total|how much|footprint|today|target|compare|average|doing|\bvs\b|versus|कितना|लक्ष्य|औसत/.test(
+      last,
+    )
+  ) {
     const standing = hi
       ? summary.targetRatio <= 1
         ? `${summary.benchmarks.sustainableTarget} kg/दिन के सतत लक्ष्य के भीतर`
@@ -322,7 +337,10 @@ export function deterministicChatReply(
 }
 
 /** Deterministic narrative used when the LLM is unavailable. */
-export function ruleBasedMessage(summary: FootprintSummary, locale: AssistantLocale = "en"): string {
+export function ruleBasedMessage(
+  summary: FootprintSummary,
+  locale: AssistantLocale = "en",
+): string {
   const hi = locale === "hi";
   if (summary.entryCount === 0) {
     return hi
@@ -384,13 +402,13 @@ export function quickTip(entries: LogEntry[], summary: FootprintSummary): Recomm
         category: "transport",
         estimatedSavingKg: 120,
       };
-    } else if (autoRickshaw >= 3) {
-      const metroFactor = EMISSION_FACTORS["metro"];
+    } else if (autoRickshaw >= 3 && EMISSION_FACTORS["auto_rickshaw"]) {
       const autoFactor = EMISSION_FACTORS["auto_rickshaw"];
-      const saving = round((autoFactor!.kgPerUnit - (metroFactor?.kgPerUnit ?? 0)) * 10);
+      const metroFactor = EMISSION_FACTORS["metro"];
+      const saving = round((autoFactor.kgPerUnit - (metroFactor?.kgPerUnit ?? 0)) * 10);
       best = {
         title: "Try metro instead of auto-rickshaw",
-        detail: `You've taken ${autoRickshaw} auto-rickshaw trips recently (${round(autoRickshaw * autoFactor!.kgPerUnit * 10)} kg CO2e). Switching half of them to the metro could save ~${saving} kg — that's a big cut on travel.`,
+        detail: `You've taken ${autoRickshaw} auto-rickshaw trips recently (${round(autoRickshaw * autoFactor.kgPerUnit * 10)} kg CO2e). Switching half of them to the metro could save ~${saving} kg — that's a big cut on travel.`,
         category: "transport",
         estimatedSavingKg: saving,
       };
@@ -442,15 +460,12 @@ export function quickTip(entries: LogEntry[], summary: FootprintSummary): Recomm
   } else if (cat === "goods") {
     best = {
       title: "One less new item",
-      detail: "Shopping is your top category. Each new garment carries ~15 kg CO2e — buying second-hand or repairing avoids most of it.",
+      detail:
+        "Shopping is your top category. Each new garment carries ~15 kg CO2e — buying second-hand or repairing avoids most of it.",
       category: "goods",
       estimatedSavingKg: 15,
     };
   }
 
   return best;
-}
-
-function round(n: number): number {
-  return Math.round(n * 100) / 100;
 }

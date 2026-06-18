@@ -1,3 +1,4 @@
+import { todayISO } from "./date";
 import { addDays, calculate, getFactor } from "./emissions";
 import { gridIntensity } from "./grid";
 import { priceLive } from "./liveFactors";
@@ -17,7 +18,7 @@ export type CreateEntryResult =
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export function serverToday(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayISO();
 }
 
 function isValidDate(s: string): boolean {

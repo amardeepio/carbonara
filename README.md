@@ -2,7 +2,7 @@
 
 **An India-focused Carbon Footprint Awareness Platform with a smart, context-aware assistant.**
 
-Carbonara helps an individual in India *understand*, *track*, and *reduce* their
+Carbonara helps an individual in India _understand_, _track_, and _reduce_ their
 carbon footprint through simple daily actions and personalized, AI-assisted
 insights. Built for **Challenge 3 — Carbon Footprint Awareness Platform**.
 
@@ -55,10 +55,10 @@ The "smart assistant" is intentionally **two-layered** so it is both trustworthy
 and genuinely intelligent:
 
 1. **Deterministic rules engine (`src/lib/assistant.ts → recommend`)** — inspects
-   the user's *actual* footprint summary, identifies the **dominant emission
+   the user's _actual_ footprint summary, identifies the **dominant emission
    category** and biggest contributors, and selects targeted, quantified,
-   India-relevant actions from a curated playbook. This is the *logical
-   decision-making based on user context*, and it needs no network or API key.
+   India-relevant actions from a curated playbook. This is the _logical
+   decision-making based on user context_, and it needs no network or API key.
    It is fully unit-tested and its output is explainable.
 
 2. **LLM narrative (Groq, `generateInsights` / `chatReply`)** — wraps that
@@ -76,15 +76,15 @@ LLM adds a human, motivating voice on top.
 Every external dependency is optional and **fails closed to a safe fallback**,
 so the app runs end-to-end for a reviewer with **zero keys configured**:
 
-| Missing | Fallback |
-| --- | --- |
-| `GROQ_API_KEY` | Deterministic rules-engine insights & chat |
-| `MONGODB_URI` | In-memory store (resets on restart, banner shown) |
-| `CARBON_INTERFACE_API_KEY` | Built-in India emission factors |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Guest sign-in only |
-| `SESSION_SECRET` | Ephemeral per-process secret |
-| OWID unreachable | Static India/world benchmarks |
-| Unknown state for grid lookup | National-average grid intensity |
+| Missing                        | Fallback                                          |
+| ------------------------------ | ------------------------------------------------- |
+| `GROQ_API_KEY`                 | Deterministic rules-engine insights & chat        |
+| `MONGODB_URI`                  | In-memory store (resets on restart, banner shown) |
+| `CARBON_INTERFACE_API_KEY`     | Built-in India emission factors                   |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Guest sign-in only                                |
+| `SESSION_SECRET`               | Ephemeral per-process secret                      |
+| OWID unreachable               | Static India/world benchmarks                     |
+| Unknown state for grid lookup  | National-average grid intensity                   |
 
 ## 3. How the solution works
 
@@ -168,7 +168,7 @@ tests/            14 Vitest suites, 147 tests (see §9)
   the LLM key.
 - **What-if simulator** — pick a habit swap (car → metro, AC discipline,
   mutton → veg…) and see the projected yearly kg CO₂e saved, computed from
-  *your own* logged volumes when available (assumed averages otherwise), and
+  _your own_ logged volumes when available (assumed averages otherwise), and
   priced with your regional grid for electric swaps.
 - **Weekly challenges** — pledge an India-relevant action for a Mon–Sun week
   ("no two-wheeler week", "metro commute"); completion is judged automatically
@@ -199,6 +199,9 @@ Other commands:
 ```bash
 npm run build                # production build (must pass before deploy)
 npm run lint                 # ESLint, zero warnings allowed
+npm run typecheck            # tsc --noEmit, strict type checking
+npm run format               # Prettier — format all files
+npm run format:check         # Prettier — verify formatting (no writes)
 npm run test:watch           # Vitest in watch mode
 node --env-file=.env.local scripts/check-db.mjs   # MongoDB connectivity smoke test
 ```
@@ -207,17 +210,17 @@ node --env-file=.env.local scripts/check-db.mjs   # MongoDB connectivity smoke t
 
 All variables are optional; see `.env.example` for inline documentation.
 
-| Variable | Enables | If unset |
-| --- | --- | --- |
-| `GROQ_API_KEY` | AI-written insights + chat ([get a key](https://console.groq.com/keys)) | Rule-based insights & chat |
-| `GROQ_MODEL` | Override the model | `llama-3.3-70b-versatile` |
-| `MONGODB_URI` | Persistent storage (Atlas free tier works) | In-memory (resets on restart) |
-| `MONGODB_DB` | Database name | `carbonara` |
-| `SESSION_SECRET` | Stable session signing across restarts (`openssl rand -hex 32`) | Ephemeral per-process secret |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google Sign-In button | Guest sign-in only |
-| `CARBON_INTERFACE_API_KEY` | Live electricity factors | Built-in India factors |
-| `CARBON_INTERFACE_COUNTRY` | Country for live estimates | `in` |
-| `GOOGLE_TRANSLATE_API_KEY` | Build-time only: regenerate locale files via `scripts/translate.mjs` | Not needed (translations are committed) |
+| Variable                       | Enables                                                                 | If unset                                |
+| ------------------------------ | ----------------------------------------------------------------------- | --------------------------------------- |
+| `GROQ_API_KEY`                 | AI-written insights + chat ([get a key](https://console.groq.com/keys)) | Rule-based insights & chat              |
+| `GROQ_MODEL`                   | Override the model                                                      | `llama-3.3-70b-versatile`               |
+| `MONGODB_URI`                  | Persistent storage (Atlas free tier works)                              | In-memory (resets on restart)           |
+| `MONGODB_DB`                   | Database name                                                           | `carbonara`                             |
+| `SESSION_SECRET`               | Stable session signing across restarts (`openssl rand -hex 32`)         | Ephemeral per-process secret            |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google Sign-In button                                                   | Guest sign-in only                      |
+| `CARBON_INTERFACE_API_KEY`     | Live electricity factors                                                | Built-in India factors                  |
+| `CARBON_INTERFACE_COUNTRY`     | Country for live estimates                                              | `in`                                    |
+| `GOOGLE_TRANSLATE_API_KEY`     | Build-time only: regenerate locale files via `scripts/translate.mjs`    | Not needed (translations are committed) |
 
 **MongoDB Atlas note:** when deploying to Vercel/Cloud Run (dynamic egress IPs),
 add `0.0.0.0/0` to the Atlas **Network Access** IP list and rely on strong
@@ -230,23 +233,23 @@ All data routes require a session cookie (**401** otherwise) and scope every
 read/write by the session's `userId` — the client is never trusted with one.
 All bodies are zod-validated (**400** with field errors on failure).
 
-| Route | Method | Purpose |
-| --- | --- | --- |
-| `/api/auth/guest` | POST | Create a guest user + session |
-| `/api/auth/google` | POST | Verify a Google ID token, sign in/up |
-| `/api/auth/me` | GET / PATCH | Current user; update profile (name, state, diet, locale, target…) |
-| `/api/auth/logout` | POST | Clear the session cookie |
-| `/api/activities` | GET | Activity catalog with grid-adjusted factors for the user's state |
-| `/api/log` | POST | Log an activity (optional `date` for backfill) |
-| `/api/log/[id]` | DELETE | Delete one of the user's entries |
-| `/api/footprint` | GET | Entries + summary: today's total, breakdown, live benchmarks. Accepts `?today=YYYY-MM-DD` for timezone-correct roll-up |
-| `/api/history` | GET | Per-day totals (drives the trend chart, calendar, streaks, week delta) |
-| `/api/insights` | POST | Personalized reduction plan (rules + optional LLM) |
-| `/api/chat` | POST | Conversational assistant over the user's footprint |
-| `/api/challenges` | GET / POST | Weekly challenge catalog + statuses; pledge a challenge (evaluation runs on GET) |
-| `/api/routines` | GET / POST | List / save activity bundles |
-| `/api/routines/[id]` | DELETE | Delete a routine |
-| `/api/routines/[id]/log` | POST | Log a routine's entries in one tap |
+| Route                    | Method      | Purpose                                                                                                                |
+| ------------------------ | ----------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `/api/auth/guest`        | POST        | Create a guest user + session                                                                                          |
+| `/api/auth/google`       | POST        | Verify a Google ID token, sign in/up                                                                                   |
+| `/api/auth/me`           | GET / PATCH | Current user; update profile (name, state, diet, locale, target…)                                                      |
+| `/api/auth/logout`       | POST        | Clear the session cookie                                                                                               |
+| `/api/activities`        | GET         | Activity catalog with grid-adjusted factors for the user's state                                                       |
+| `/api/log`               | POST        | Log an activity (optional `date` for backfill)                                                                         |
+| `/api/log/[id]`          | DELETE      | Delete one of the user's entries                                                                                       |
+| `/api/footprint`         | GET         | Entries + summary: today's total, breakdown, live benchmarks. Accepts `?today=YYYY-MM-DD` for timezone-correct roll-up |
+| `/api/history`           | GET         | Per-day totals (drives the trend chart, calendar, streaks, week delta)                                                 |
+| `/api/insights`          | POST        | Personalized reduction plan (rules + optional LLM)                                                                     |
+| `/api/chat`              | POST        | Conversational assistant over the user's footprint                                                                     |
+| `/api/challenges`        | GET / POST  | Weekly challenge catalog + statuses; pledge a challenge (evaluation runs on GET)                                       |
+| `/api/routines`          | GET / POST  | List / save activity bundles                                                                                           |
+| `/api/routines/[id]`     | DELETE      | Delete a routine                                                                                                       |
+| `/api/routines/[id]/log` | POST        | Log a routine's entries in one tap                                                                                     |
 
 ## 8. Security
 

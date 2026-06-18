@@ -32,10 +32,7 @@ function swap(key: string) {
 describe("simulateSwap", () => {
   it("averages the last 28 days of history into a weekly volume", () => {
     // 80 km of petrol car over the window → 20 km/week
-    const entries = [
-      entry("car_petrol", 40, "2026-06-01"),
-      entry("car_petrol", 40, "2026-05-20"),
-    ];
+    const entries = [entry("car_petrol", 40, "2026-06-01"), entry("car_petrol", 40, "2026-05-20")];
     const p = simulateSwap(swap("car_to_metro"), entries, factorMap(), TODAY);
     expect(p?.basis).toBe("history");
     expect(p?.weeklyQty).toBe(20);

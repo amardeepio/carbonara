@@ -82,8 +82,7 @@ export default function ChallengesPanel({ refreshKey }: Props) {
   const activePledges = data.pledges.filter((p) => p.status === "active");
   const pastPledges = data.pledges.filter((p) => p.status !== "active");
   const earnedBadges = data.badges.filter((b) => b.earned);
-  const challengeTitle = (key: string) =>
-    data.challenges.find((c) => c.key === key)?.title ?? key;
+  const challengeTitle = (key: string) => data.challenges.find((c) => c.key === key)?.title ?? key;
   const challengeIcon = (key: string) => data.challenges.find((c) => c.key === key)?.icon ?? "🎯";
 
   return (

@@ -138,7 +138,10 @@ export default function RoutinesCard({ activities, logDate, onLogged }: Props) {
                 <span className="meta">
                   {" "}
                   {routine.items
-                    .map((i) => `${i.quantity} ${factorByKey.get(i.type)?.unit ?? ""} ${factorByKey.get(i.type)?.label ?? i.type}`)
+                    .map(
+                      (i) =>
+                        `${i.quantity} ${factorByKey.get(i.type)?.unit ?? ""} ${factorByKey.get(i.type)?.label ?? i.type}`,
+                    )
                     .join(" · ")}
                 </span>
               </div>

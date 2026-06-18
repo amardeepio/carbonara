@@ -13,7 +13,11 @@ export interface PledgeStore {
   list(userId: string): Promise<Pledge[]>;
   add(pledge: Omit<Pledge, "id">): Promise<Pledge>;
   /** Patch one of `userId`'s pledges (status/kgAvoided transitions). */
-  update(id: string, userId: string, patch: Partial<Pick<Pledge, "status" | "kgAvoided">>): Promise<Pledge | null>;
+  update(
+    id: string,
+    userId: string,
+    patch: Partial<Pick<Pledge, "status" | "kgAvoided">>,
+  ): Promise<Pledge | null>;
 }
 
 const COLLECTION = "pledges";
@@ -26,7 +30,10 @@ class MemoryPledgeStore implements PledgeStore {
   async list(userId: string): Promise<Pledge[]> {
     return this.pledges
       .filter((p) => p.userId === userId)
-      .sort((a, b) => b.weekStart.localeCompare(a.weekStart) || a.challengeKey.localeCompare(b.challengeKey));
+      .sort(
+        (a, b) =>
+          b.weekStart.localeCompare(a.weekStart) || a.challengeKey.localeCompare(b.challengeKey),
+      );
   }
 
   async add(pledge: Omit<Pledge, "id">): Promise<Pledge> {

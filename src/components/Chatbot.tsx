@@ -80,7 +80,10 @@ export default function Chatbot() {
     } catch {
       setMessages((m) => [
         ...m,
-        { role: "assistant", content: "Something went wrong reaching the assistant. Please try again." },
+        {
+          role: "assistant",
+          content: "Something went wrong reaching the assistant. Please try again.",
+        },
       ]);
     } finally {
       setLoading(false);
@@ -98,8 +101,13 @@ export default function Chatbot() {
         >
           <header className="chat-panel-head">
             <h2 id="chat-heading">
-              <span className="brand-mark" aria-hidden="true">🌱</span> Ask Carbonara
-              <span className="badge-ai" aria-hidden="true">AI</span>
+              <span className="brand-mark" aria-hidden="true">
+                🌱
+              </span>{" "}
+              Ask Carbonara
+              <span className="badge-ai" aria-hidden="true">
+                AI
+              </span>
             </h2>
             <button
               type="button"
@@ -140,7 +148,13 @@ export default function Chatbot() {
 
           <div className="suggestions" role="group" aria-label="Suggested questions">
             {SUGGESTIONS.map((s) => (
-              <button key={s} type="button" className="chip" onClick={() => send(s)} disabled={loading}>
+              <button
+                key={s}
+                type="button"
+                className="chip"
+                onClick={() => send(s)}
+                disabled={loading}
+              >
                 {s}
               </button>
             ))}

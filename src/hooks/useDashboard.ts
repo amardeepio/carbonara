@@ -33,7 +33,7 @@ export function useDashboard() {
 
   const factors = useMemo(
     () => Object.fromEntries(activities.map((a) => [a.key, a])),
-    [activities]
+    [activities],
   );
 
   // Resolve the session once on mount.
@@ -53,8 +53,12 @@ export function useDashboard() {
         }
         setAuth(
           d.user
-            ? { status: "authed", user: d.user as SafeUser, googleEnabled: Boolean(d.googleEnabled) }
-            : { status: "anon", googleEnabled: Boolean(d.googleEnabled) }
+            ? {
+                status: "authed",
+                user: d.user as SafeUser,
+                googleEnabled: Boolean(d.googleEnabled),
+              }
+            : { status: "anon", googleEnabled: Boolean(d.googleEnabled) },
         );
       })
       .catch(() => setAuth({ status: "anon", googleEnabled: false }));
@@ -96,7 +100,7 @@ export function useDashboard() {
       setLoadError(null);
       await loadFootprint();
     },
-    [loadFootprint]
+    [loadFootprint],
   );
 
   const signOut = useCallback(async () => {

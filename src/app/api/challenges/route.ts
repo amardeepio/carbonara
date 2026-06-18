@@ -51,7 +51,12 @@ export async function GET() {
         status: result.status,
         kgAvoided: result.kgAvoided,
       });
-      evaluated.push({ ...pledge, status: result.status, kgAvoided: result.kgAvoided, progress: result.progress });
+      evaluated.push({
+        ...pledge,
+        status: result.status,
+        kgAvoided: result.kgAvoided,
+        progress: result.progress,
+      });
     } else {
       evaluated.push({ ...pledge, progress: result.progress });
     }

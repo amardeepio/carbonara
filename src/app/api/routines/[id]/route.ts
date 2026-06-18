@@ -5,10 +5,7 @@ import { getSessionUser } from "@/lib/session";
 export const dynamic = "force-dynamic";
 
 /** DELETE /api/routines/:id — remove one of the session user's routines. */
-export async function DELETE(
-  _request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });

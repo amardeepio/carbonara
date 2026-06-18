@@ -77,10 +77,7 @@ describe("avoid challenges (Meatless week)", () => {
   });
 
   it("misses immediately on a violation", () => {
-    const entries = [
-      entry("meal_veg", 1, "2026-06-01"),
-      entry("meal_mutton", 1, "2026-06-02"),
-    ];
+    const entries = [entry("meal_veg", 1, "2026-06-01"), entry("meal_mutton", 1, "2026-06-02")];
     const r = evaluateChallenge(def("meatless_week"), entries, WEEK_START, MID_WEEK);
     expect(r.status).toBe("missed");
   });
@@ -147,15 +144,10 @@ describe("reduce challenges (AC at 26 °C week)", () => {
 
 describe("canPledge", () => {
   it("gates reduce challenges on 7 days of prior history", () => {
-    const fewDays = [
-      entry("electricity", 5, "2026-05-20"),
-      entry("electricity", 5, "2026-05-21"),
-    ];
+    const fewDays = [entry("electricity", 5, "2026-05-20"), entry("electricity", 5, "2026-05-21")];
     expect(canPledge(def("ac_26_week"), fewDays, WEEK_START).ok).toBe(false);
 
-    const enough = Array.from({ length: 7 }, (_, i) =>
-      entry("electricity", 5, `2026-05-2${i}`),
-    );
+    const enough = Array.from({ length: 7 }, (_, i) => entry("electricity", 5, `2026-05-2${i}`));
     expect(canPledge(def("ac_26_week"), enough, WEEK_START).ok).toBe(true);
   });
 

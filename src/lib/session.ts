@@ -22,13 +22,17 @@ export async function getSessionUser(): Promise<User | null> {
 
 /** Attach a fresh session cookie for `user` to an outgoing response. */
 export function attachSession(response: NextResponse, user: User): void {
-  response.cookies.set(SESSION_COOKIE, createSessionToken({ uid: user.id, provider: user.provider }), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: SESSION_TTL_S,
-  });
+  response.cookies.set(
+    SESSION_COOKIE,
+    createSessionToken({ uid: user.id, provider: user.provider }),
+    {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: SESSION_TTL_S,
+    },
+  );
 }
 
 /** Expire the session cookie on an outgoing response. */

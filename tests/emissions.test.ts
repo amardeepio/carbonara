@@ -16,12 +16,7 @@ import {
 } from "@/lib/emissions";
 import type { DailyTotal, LogEntry } from "@/lib/types";
 
-function entry(
-  type: string,
-  quantity: number,
-  createdAt: string,
-  date?: string,
-): LogEntry {
+function entry(type: string, quantity: number, createdAt: string, date?: string): LogEntry {
   return {
     id: `${type}-${createdAt}`,
     userId: "test-user",
@@ -259,8 +254,11 @@ describe("computeStreak", () => {
 
   it("tracks best streak separately from current", () => {
     const totals = [
-      dt("2026-06-09", 5), dt("2026-06-08", 4), // current = 2
-      dt("2026-06-05", 3), dt("2026-06-04", 3), dt("2026-06-03", 3), // best = 3
+      dt("2026-06-09", 5),
+      dt("2026-06-08", 4), // current = 2
+      dt("2026-06-05", 3),
+      dt("2026-06-04", 3),
+      dt("2026-06-03", 3), // best = 3
     ];
     expect(computeStreak(totals, today)).toEqual({ current: 2, best: 3 });
   });
@@ -272,8 +270,10 @@ describe("weekDelta", () => {
   it("compares this week vs last week", () => {
     // Mon–Sun Jun 1-7 vs Mon–Sun Jun 8-14
     const totals = [
-      dt("2026-06-01", 2), dt("2026-06-02", 3), // last week Mon–Tue = 5
-      dt("2026-06-08", 1), dt("2026-06-09", 2), // this week Mon–Tue = 3
+      dt("2026-06-01", 2),
+      dt("2026-06-02", 3), // last week Mon–Tue = 5
+      dt("2026-06-08", 1),
+      dt("2026-06-09", 2), // this week Mon–Tue = 3
     ];
     const d = weekDelta(totals, today);
     expect(d.thisWeek).toBe(3);

@@ -312,7 +312,8 @@ export default function Onboarding({ googleEnabled, returning = false, onComplet
               </div>
 
               <p className="onb-fineprint">
-                Guest data is tied to this browser. {showGoogle ? "Sign in with Google any time to keep it across devices. " : ""}
+                Guest data is tied to this browser.{" "}
+                {showGoogle ? "Sign in with Google any time to keep it across devices. " : ""}
                 No passwords, no spam — just your footprint.
               </p>
             </>

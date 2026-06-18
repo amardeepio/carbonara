@@ -4,15 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useT } from "@/components/LocaleProvider";
 import type { Category, Factor } from "@/lib/types";
 import type { MessageKey } from "@/lib/i18n";
-
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-
-function todayLocal(): string {
-  return new Date().toISOString().slice(0, 10);
-}
+import { MONTH_NAMES, todayISO } from "@/lib/date";
 
 function prettyDate(date: string): string {
   const d = new Date(date + "T00:00:00");
@@ -107,7 +99,7 @@ export default function ActivityForm({ activities, onLogged, logDate, onClearLog
   const qty = Number(quantity);
   const validQty = Number.isFinite(qty) && qty > 0;
   const estimate = selected && validQty ? Math.round(selected.kgPerUnit * qty * 100) / 100 : null;
-  const presets = selected ? PRESETS[selected.unit] ?? [] : [];
+  const presets = selected ? (PRESETS[selected.unit] ?? []) : [];
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -142,7 +134,10 @@ export default function ActivityForm({ activities, onLogged, logDate, onClearLog
       setQuantity("");
       onLogged();
     } catch (err) {
-      setStatus({ kind: "error", text: err instanceof Error ? err.message : "Something went wrong." });
+      setStatus({
+        kind: "error",
+        text: err instanceof Error ? err.message : "Something went wrong.",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -152,7 +147,7 @@ export default function ActivityForm({ activities, onLogged, logDate, onClearLog
     <section className="card logger" aria-labelledby="log-heading">
       <h2 id="log-heading">{t("form.heading")}</h2>
 
-      {logDate && logDate !== todayLocal() && (
+      {logDate && logDate !== todayISO() && (
         <div className="backfill-banner">
           <span>{t("form.backfill", { date: prettyDate(logDate) })}</span>
           <button type="button" className="secondary" onClick={onClearLogDate}>
@@ -267,7 +262,7 @@ export default function ActivityForm({ activities, onLogged, logDate, onClearLog
         <button type="submit" className="primary add-btn" disabled={submitting || !validQty}>
           {submitting
             ? t("form.adding")
-            : logDate && logDate !== todayLocal()
+            : logDate && logDate !== todayISO()
               ? t("form.addTo", { date: prettyDate(logDate) })
               : t("form.addToday")}
         </button>

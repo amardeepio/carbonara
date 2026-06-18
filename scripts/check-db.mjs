@@ -63,7 +63,9 @@ try {
     throw new Error("Round-trip failed: inserted document(s) not found on read-back");
   }
   console.log(`✓ Read back user: ${userBack.name} <${userBack.email}>`);
-  console.log(`✓ Read back entry: ${entryBack.type} ${entryBack.quantity} → ${entryBack.kgCo2e} kg CO2e`);
+  console.log(
+    `✓ Read back entry: ${entryBack.type} ${entryBack.quantity} → ${entryBack.kgCo2e} kg CO2e`,
+  );
 
   const [userCount, entryCount] = await Promise.all([
     users.countDocuments(),

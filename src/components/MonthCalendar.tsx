@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { dailyTotals } from "@/lib/emissions";
+import { MONTH_NAMES, todayISO } from "@/lib/date";
 import type { Factor, LogEntry } from "@/lib/types";
 
 interface Props {
@@ -16,14 +17,6 @@ interface Props {
 }
 
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-
-function todayLocal(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function daysInMonth(year: number, month: number): number {
   return new Date(year, month + 1, 0).getDate();
@@ -69,7 +62,7 @@ export default function MonthCalendar({
   personalTarget,
 }: Props) {
   const tgt = personalTarget ?? target;
-  const today = todayLocal();
+  const today = todayISO();
   const [todayY, todayM] = today.split("-") as [string, string, string];
 
   const [viewYear, setViewYear] = useState(Number(todayY));
@@ -84,8 +77,7 @@ export default function MonthCalendar({
   }, [entries]);
 
   const canNext =
-    viewYear < Number(todayY) ||
-    (viewYear === Number(todayY) && viewMonth < Number(todayM) - 1);
+    viewYear < Number(todayY) || (viewYear === Number(todayY) && viewMonth < Number(todayM) - 1);
 
   const days = daysInMonth(viewYear, viewMonth);
   const offset = mondayOffset(viewYear, viewMonth);

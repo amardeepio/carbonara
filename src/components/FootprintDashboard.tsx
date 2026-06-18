@@ -1,17 +1,21 @@
 "use client";
 
 import { useMemo } from "react";
-import type { Category, Factor, FootprintSummary, LogEntry, Streak, WeekDelta as WeekDeltaType } from "@/lib/types";
+import type {
+  Category,
+  Factor,
+  FootprintSummary,
+  LogEntry,
+  Streak,
+  WeekDelta as WeekDeltaType,
+} from "@/lib/types";
 import { quickTip } from "@/lib/assistant";
+import { todayISO } from "@/lib/date";
 import { equivalents } from "@/lib/equivalents";
 import type { MessageKey } from "@/lib/i18n";
 import { useT } from "./LocaleProvider";
 import StreakBadge from "./StreakBadge";
 import WeekDelta from "./WeekDelta";
-
-function todayLocal(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 interface Props {
   summary: FootprintSummary;
@@ -25,17 +29,37 @@ interface Props {
 
 const CATEGORY_KEY: Record<Category, MessageKey> = {
   transport: "cat.transport",
-  energy: "cat.homeEnergy",
+  energy: "cat.energy",
   diet: "cat.diet",
   waste: "cat.waste",
   goods: "cat.goods",
 };
 
-function exportCSV(entries: LogEntry[], factors: Record<string, Factor>, summary: FootprintSummary) {
+/** RFC 4180 CSV field escaping: quote fields containing comma, quote or newline. */
+function csvCell(value: string | number): string {
+  const s = String(value);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function exportCSV(
+  entries: LogEntry[],
+  factors: Record<string, Factor>,
+  summary: FootprintSummary,
+) {
   const header = "date,type,label,quantity,unit,kgCo2e,pricedBy";
   const rows = entries.map((e) => {
     const f = factors[e.type];
-    return [e.date, e.type, f?.label ?? e.type, e.quantity, f?.unit ?? "", e.kgCo2e, e.pricedBy].join(",");
+    return [
+      e.date,
+      e.type,
+      f?.label ?? e.type,
+      e.quantity,
+      f?.unit ?? "",
+      e.kgCo2e,
+      e.pricedBy ?? "",
+    ]
+      .map(csvCell)
+      .join(",");
   });
   const csv = [header, ...rows].join("\n");
   const blob = new Blob([csv], { type: "text/csv" });
@@ -80,7 +104,7 @@ export default function FootprintDashboard({
         <div
           className={`bar ${overTarget ? "over" : ""}`}
           role="img"
-          aria-label={`Today's footprint is ${summary.todayKg} kilograms, which is ${Math.round(summary.todayKg / target * 10) / 10}x ${targetLabel} of ${target} kilograms.`}
+          aria-label={`Today's footprint is ${summary.todayKg} kilograms, which is ${Math.round((summary.todayKg / target) * 10) / 10}x ${targetLabel} of ${target} kilograms.`}
         >
           <span style={{ width: `${pctOfTarget}%` }} />
         </div>
@@ -89,7 +113,11 @@ export default function FootprintDashboard({
           {summary.personalTarget != null && (
             <li>
               <span>Your target ({Math.round(target * 10) / 10} kg)</span>
-              <strong>{summary.personalBaseline != null ? `From ${summary.personalBaseline} kg baseline` : targetLabel}</strong>
+              <strong>
+                {summary.personalBaseline != null
+                  ? `From ${summary.personalBaseline} kg baseline`
+                  : targetLabel}
+              </strong>
             </li>
           )}
           <li>
@@ -128,9 +156,7 @@ export default function FootprintDashboard({
           <h3>{tip.title}</h3>
           <p>{tip.detail}</p>
           {typeof tip.estimatedSavingKg === "number" && (
-            <span className="saving">
-              ↓ saves ~{tip.estimatedSavingKg} kg CO₂e
-            </span>
+            <span className="saving">↓ saves ~{tip.estimatedSavingKg} kg CO₂e</span>
           )}
         </section>
       )}
@@ -177,7 +203,7 @@ export default function FootprintDashboard({
                     <div>
                       <strong>{factor?.label ?? entry.type}</strong>{" "}
                       <span className="meta">
-                        {entry.date !== todayLocal() && <>{entry.date} · </>}
+                        {entry.date !== todayISO() && <>{entry.date} · </>}
                         {entry.quantity} {factor?.unit ?? ""} · {entry.kgCo2e} kg CO₂e
                       </span>
                       {entry.pricedBy === "live" && <span className="tag"> Live</span>}

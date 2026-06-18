@@ -11,10 +11,7 @@ export const dynamic = "force-dynamic";
  * Items are logged independently (no transactions in the memory store), so
  * the response reports per-item results instead of faking atomicity.
  */
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
@@ -50,8 +47,5 @@ export async function POST(
     else failed.push({ type: item.type, error: result.error });
   }
 
-  return NextResponse.json(
-    { logged, failed },
-    { status: logged.length > 0 ? 201 : 400 },
-  );
+  return NextResponse.json({ logged, failed }, { status: logged.length > 0 ? 201 : 400 });
 }

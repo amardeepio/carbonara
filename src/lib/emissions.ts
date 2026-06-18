@@ -11,6 +11,7 @@ import type {
   Streak,
   WeekDelta,
 } from "./types";
+import { todayISO } from "./date";
 import { NATIONAL_INTENSITY } from "./grid";
 
 /**
@@ -278,7 +279,10 @@ export const BENCHMARKS: Benchmarks = {
  * others are grid-independent. Kept at 4-decimal precision so small per-km
  * factors (e.g. e-rickshaw) survive the conversion.
  */
-export function effectiveKgPerUnit(factor: Factor, gridKgPerKwh: number = NATIONAL_INTENSITY): number {
+export function effectiveKgPerUnit(
+  factor: Factor,
+  gridKgPerKwh: number = NATIONAL_INTENSITY,
+): number {
   if (factor.kwhPerUnit === undefined) return factor.kgPerUnit;
   return Math.round(factor.kwhPerUnit * gridKgPerKwh * 10000) / 10000;
 }
@@ -338,7 +342,7 @@ const CATEGORIES: Category[] = ["transport", "energy", "diet", "waste", "goods"]
  */
 export function summarise(
   entries: LogEntry[],
-  today: string = new Date().toISOString().slice(0, 10),
+  today: string = todayISO(),
   benchmarks: Benchmarks = BENCHMARKS,
 ): FootprintSummary {
   const byCategory = new Map<Category, number>();
@@ -396,7 +400,7 @@ export function round(n: number): number {
 export function lastNDays(
   totals: DailyTotal[],
   n: number,
-  today: string = new Date().toISOString().slice(0, 10),
+  today: string = todayISO(),
 ): DailyTotal[] {
   const byDate = new Map(totals.map((t) => [t.date, t.kg]));
   const series: DailyTotal[] = [];
@@ -426,10 +430,10 @@ export function movingAverage(totals: DailyTotal[], window = 7): DailyTotal[] {
 
 /** Estimated daily kg CO2e for a given commute mode (typical Indian commute). */
 const COMMUTE_BASELINE: Partial<Record<CommuteMode, number>> = {
-  two_wheeler: 0.51,   // 10 km/day
-  car: 2.31,           // 15 km/day
-  bus: 0.5,            // 10 km/day
-  metro: 0.14,         // 10 km/day
+  two_wheeler: 0.51, // 10 km/day
+  car: 2.31, // 15 km/day
+  bus: 0.5, // 10 km/day
+  metro: 0.14, // 10 km/day
   walk_cycle: 0,
 };
 
@@ -483,10 +487,7 @@ export function personalDailyTarget(
  * Compute the current and best logging streak from a set of total daily entries.
  * `today` is the reference date string (YYYY-MM-DD).
  */
-export function computeStreak(
-  totals: DailyTotal[],
-  today: string = new Date().toISOString().slice(0, 10),
-): Streak {
+export function computeStreak(totals: DailyTotal[], today: string = todayISO()): Streak {
   const days = new Set(totals.map((t) => t.date));
   if (days.size === 0) return { current: 0, best: 0 };
 
@@ -529,10 +530,7 @@ export function computeStreak(
  * `totals` is the full dailyTotals output; `today` is the reference date.
  * Returns null for pct when lastWeek is 0.
  */
-export function weekDelta(
-  totals: DailyTotal[],
-  today: string = new Date().toISOString().slice(0, 10),
-): WeekDelta {
+export function weekDelta(totals: DailyTotal[], today: string = todayISO()): WeekDelta {
   const weekKg = (start: string, end: string) => {
     let kg = 0;
     for (const t of totals) {
